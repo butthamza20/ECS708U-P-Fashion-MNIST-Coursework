@@ -1,0 +1,7 @@
+# Downloaded dataset (re-downloaded automatically by the notebook)
+data/
+
+# Python and notebook caches
+__pycache__/
+.ipynb_checkpoints/
+venv/

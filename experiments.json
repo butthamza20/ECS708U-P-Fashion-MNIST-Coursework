@@ -1,0 +1,446 @@
+{
+  "common": {
+    "dataset": "Fashion-MNIST (official 60,000 train / 10,000 test)",
+    "split": "stratified 50,000 train / 10,000 validation from the official training set",
+    "split_seed": 42,
+    "split_files": [
+      "splits/train_indices.npy",
+      "splits/val_indices.npy"
+    ],
+    "evaluation": "validation set unless stated; test set used once, after the test plan was frozen",
+    "hardware": "CPU (Google Colab, no GPU); Python 3.13.18, PyTorch 2.14.1, Torchvision 0.29.1, NumPy 2.4.6, scikit-learn 1.6.1, SciPy 1.16.3, pandas 2.2.3, Matplotlib 3.10.0",
+    "full_run_time": "about 1 hour on a Colab CPU (timed steps add up to about 56 minutes)"
+  },
+  "experiments": [
+    {
+      "id": "EXP-01",
+      "section": "Part 1.1",
+      "question": "How well does a baseline logistic regression do?",
+      "changed": "none (baseline)",
+      "config": {
+        "model": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 1000,
+        "solver": "lbfgs (default)",
+        "preprocessing": "StandardScaler fitted on the 50,000 training images"
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-02",
+      "section": "Part 1.1",
+      "question": "How well does a baseline kNN do?",
+      "changed": "none (baseline)",
+      "config": {
+        "model": "KNeighborsClassifier",
+        "n_neighbors": 5,
+        "distance": "Euclidean",
+        "preprocessing": "0-1 pixels, no scaling",
+        "train_accuracy_sample": "5,000 training rows, np.random.default_rng(42)"
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-03",
+      "section": "Part 1.4",
+      "question": "How does k affect kNN?",
+      "changed": {
+        "n_neighbors": [
+          1,
+          3,
+          5,
+          7,
+          11,
+          15,
+          25,
+          51
+        ]
+      },
+      "config": "as EXP-02",
+      "selected": {
+        "n_neighbors": 7
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-04",
+      "section": "Part 1.4",
+      "question": "How does C affect logistic regression?",
+      "changed": {
+        "C": [
+          0.0001,
+          0.001,
+          0.01,
+          0.1,
+          1,
+          10,
+          100
+        ]
+      },
+      "config": {
+        "training_data": "stratified 10,000-row subset of the training array (random_state 42)",
+        "max_iter": 1000
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-05",
+      "section": "Part 1.4",
+      "question": "Does C = 100 converge with more iterations?",
+      "changed": {
+        "max_iter": [
+          1000,
+          3000
+        ]
+      },
+      "config": "as EXP-04 with C = 100",
+      "seed": 42
+    },
+    {
+      "id": "EXP-06",
+      "section": "Part 1.4",
+      "question": "Which C is best on all 50,000 training images?",
+      "changed": {
+        "C": [
+          0.01,
+          0.1,
+          1.0
+        ]
+      },
+      "config": {
+        "training_data": "all 50,000 training images",
+        "max_iter": 1000
+      },
+      "selected": {
+        "C": 0.01
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-07",
+      "section": "Parts 1.2 and 1.3",
+      "question": "Per-class performance and errors of the selected models",
+      "changed": "none",
+      "config": {
+        "logistic_regression_C": 0.01,
+        "knn_k": 7,
+        "error_sample": "4 images per group, np.random.default_rng(42)"
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-08",
+      "section": "Part 1.5",
+      "question": "Which Shirt-vs-not-Shirt threshold minimises cost?",
+      "changed": {
+        "threshold": "0.05 to 0.95 in steps of 0.05",
+        "cost_ratio_FN_to_FP": [
+          1,
+          2,
+          5,
+          10,
+          20
+        ]
+      },
+      "config": {
+        "model": "final logistic regression (C = 0.01)",
+        "cost": "5 x FN + 1 x FP"
+      },
+      "selected": {
+        "threshold": 0.2
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-09",
+      "section": "Part 2.1",
+      "question": "Baseline MLP",
+      "changed": "none (baseline)",
+      "config": {
+        "hidden_sizes": [
+          256,
+          128
+        ],
+        "activation": "ReLU",
+        "loss": "cross-entropy",
+        "optimiser": "plain SGD (hand-written update)",
+        "lr": 0.1,
+        "batch_size": 64,
+        "epochs": 20,
+        "initialisation": "PyTorch default for nn.Linear, after torch.manual_seed(seed)",
+        "checkpoint_rule": "epoch with the highest validation accuracy",
+        "inputs": "0-1 pixels from ToTensor()"
+      },
+      "checkpoint": "checkpoints/baseline.pt",
+      "seed": 42
+    },
+    {
+      "id": "EXP-10",
+      "section": "Part 2.2",
+      "question": "How does capacity affect training fit and validation?",
+      "changed": {
+        "hidden_sizes": [
+          [
+            32
+          ],
+          [
+            256,
+            128
+          ],
+          [
+            1024,
+            512
+          ]
+        ]
+      },
+      "config": "as EXP-09",
+      "checkpoints": [
+        "checkpoints/small.pt",
+        "checkpoints/baseline.pt",
+        "checkpoints/large.pt"
+      ],
+      "seed": 42
+    },
+    {
+      "id": "EXP-11",
+      "section": "Part 2.3",
+      "question": "How does the learning rate affect training dynamics?",
+      "changed": {
+        "lr": [
+          0.01,
+          0.1,
+          0.5
+        ]
+      },
+      "config": "as EXP-09",
+      "checkpoints": [
+        "checkpoints/lr_0.01.pt",
+        "checkpoints/baseline.pt",
+        "checkpoints/lr_0.5.pt"
+      ],
+      "seed": 42
+    },
+    {
+      "id": "EXP-12",
+      "section": "Part 3.1",
+      "question": "How do different regularisation strategies affect overfitting?",
+      "changed": {
+        "config": [
+          {
+            "name": "none",
+            "dropout": 0.0,
+            "weight_decay": 0.0
+          },
+          {
+            "name": "dropout_0.2",
+            "dropout": 0.2,
+            "weight_decay": 0.0
+          },
+          {
+            "name": "dropout_0.5",
+            "dropout": 0.5,
+            "weight_decay": 0.0
+          },
+          {
+            "name": "wd_1e-4",
+            "dropout": 0.0,
+            "weight_decay": 0.0001
+          },
+          {
+            "name": "wd_1e-3",
+            "dropout": 0.0,
+            "weight_decay": 0.001
+          }
+        ]
+      },
+      "config": {
+        "training_data": "splits/reg_train_indices.npy (10,000 images, 1,000 per class)",
+        "hidden_sizes": [
+          256,
+          128
+        ],
+        "optimiser": "plain SGD",
+        "lr": 0.1,
+        "batch_size": 64,
+        "epochs": 60,
+        "weight_decay_applies_to": "weight matrices only (not biases)",
+        "train_metrics": "clean pass (dropout off, cross-entropy only)",
+        "selection_rule": "highest best-checkpoint validation accuracy; ties within 0.2 points broken by smaller final gap"
+      },
+      "selected": "dropout_0.2",
+      "seed": 42
+    },
+    {
+      "id": "EXP-13",
+      "section": "Parts 3.1 and 3.2",
+      "question": "No regularisation vs dropout 0.2 across seeds",
+      "changed": {
+        "seed": [
+          42,
+          43,
+          44
+        ]
+      },
+      "config": "as EXP-12, configurations none and dropout_0.2",
+      "randomness_controlled": [
+        "split (seed 42)",
+        "10k subset (seed 42)",
+        "initial weights (torch.manual_seed)",
+        "dropout masks (torch.manual_seed)",
+        "batch order (generator re-seeded per run)"
+      ],
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "id": "EXP-14",
+      "section": "Part 4.1",
+      "question": "Choosing K on raw pixels (no labels)",
+      "changed": {
+        "K": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12,
+          15,
+          20,
+          25,
+          30
+        ]
+      },
+      "config": {
+        "data": "splits/cluster_train_indices.npy (fit), splits/cluster_val_indices.npy (choose K)",
+        "representation": "raw pixels, 0-1, no transformation",
+        "kmeans": {
+          "init": "k-means++",
+          "n_init": 10,
+          "max_iter": 300,
+          "tol": 0.0001,
+          "algorithm": "lloyd"
+        },
+        "measures": [
+          "J per image (train and validation)",
+          "silhouette (train and validation)"
+        ]
+      },
+      "selected": {
+        "K": 10
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-15",
+      "section": "Part 4.1",
+      "question": "Stability at K = 10",
+      "changed": {
+        "protocol": [
+          "random init, n_init 1",
+          "k-means++, n_init 1",
+          "k-means++, n_init 10"
+        ],
+        "seed": "0-9"
+      },
+      "config": {
+        "K": 10,
+        "max_iter": 300,
+        "tol": 0.0001,
+        "agreement": "pairwise adjusted Rand index (no labels)"
+      },
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "EXP-16",
+      "section": "Part 4.2",
+      "question": "Interpreting clusters with labels (after fixing the protocol)",
+      "changed": "none",
+      "config": {
+        "K": [
+          10,
+          2
+        ],
+        "kmeans": "as EXP-14",
+        "example_sample": "8 images per cluster, np.random.default_rng(42)"
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-17",
+      "section": "Part 4.4",
+      "question": "Hierarchical clustering",
+      "changed": "none",
+      "config": {
+        "data": "splits/hier_indices.npy (300 images, 30 per class)",
+        "linkage": "ward",
+        "distance": "Euclidean",
+        "cuts": [
+          2,
+          3,
+          4,
+          6,
+          10
+        ]
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-18",
+      "section": "Part 5.1",
+      "question": "Raw pixels vs MLP features under the same protocol",
+      "changed": {
+        "representation": [
+          "raw pixels (784-d)",
+          "MLP last hidden layer after ReLU (128-d)"
+        ]
+      },
+      "config": {
+        "feature_model": "checkpoints/baseline.pt (frozen)",
+        "features": [
+          "features/mlp_hidden2_train.npy",
+          "features/mlp_hidden2_val.npy"
+        ],
+        "transformation": "none (standardised features tested as an extra check)",
+        "kmeans": "as EXP-14 and EXP-15"
+      },
+      "seed": 42
+    },
+    {
+      "id": "EXP-19",
+      "section": "Part 5.2",
+      "question": "Route B: does combining trained models help?",
+      "changed": {
+        "rule": [
+          "average of probabilities (logistic regression + MLP, equal weights)",
+          "majority vote (logistic regression + kNN + MLP; MLP breaks ties)"
+        ]
+      },
+      "config": {
+        "members": [
+          "logistic regression C = 0.01",
+          "kNN k = 7",
+          "checkpoints/baseline.pt"
+        ],
+        "selection_rule": "higher validation accuracy; reported whether or not it beats the best member"
+      },
+      "selected": "average of probabilities",
+      "seed": "not applicable (no training)"
+    }
+  ]
+}
