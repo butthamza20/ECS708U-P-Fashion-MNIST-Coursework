@@ -1,1 +1,0 @@
-# ECS708U-P-Fashion-MNIST-Coursework
